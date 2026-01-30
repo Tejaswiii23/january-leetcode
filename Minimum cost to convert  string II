@@ -1,0 +1,46 @@
+class Solution:
+    def minimumCost(self, source, target, original, changed, cost):
+        INF = 10**18
+        strs = set(original) | set(changed)
+        idx = {s: i for i, s in enumerate(strs)}
+        m = len(idx)
+        dist = [[INF] * m for _ in range(m)]
+        for s in strs:
+            dist[idx[s]][idx[s]] = 0
+        for o, c, z in zip(original, changed, cost):
+            i = idx[o]
+            j = idx[c]
+            if z < dist[i][j]:
+                dist[i][j] = z
+        for k in range(m):
+            for i in range(m):
+                if dist[i][k] == INF:
+                    continue
+                for j in range(m):
+                    if dist[k][j] == INF:
+                        continue
+                    v = dist[i][k] + dist[k][j]
+                    if v < dist[i][j]:
+                        dist[i][j] = v
+        keys = list(idx.keys())
+        conv = {}
+        for i in range(m):
+            for j in range(m):
+                if dist[i][j] < INF:
+                    conv[(keys[i], keys[j])] = dist[i][j]
+        n = len(source)
+        dp = [INF] * (n + 1)
+        dp[n] = 0
+        originals = set(original)
+        for i in range(n - 1, -1, -1):
+            if source[i] == target[i]:
+                dp[i] = dp[i + 1]
+            for o in originals:
+                L = len(o)
+                if i + L <= n and source[i:i + L] == o:
+                    t = target[i:i + L]
+                    if (o, t) in conv and dp[i + L] < INF:
+                        v = conv[(o, t)] + dp[i + L]
+                        if v < dp[i]:
+                            dp[i] = v
+        return -1 if dp[0] >= INF else dp[0]
